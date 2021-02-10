@@ -5,9 +5,7 @@ import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.core.app.ActivityCompat
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.*
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -24,7 +22,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     lateinit var locationRequest: LocationRequest
     lateinit var locationCallback: LocationCallback
-
+    var mylong : Double = 0.0
+    var mylat : Double = 0.0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,16 +51,41 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                         android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED){
             mMap.isMyLocationEnabled = true
 
+            fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
+
+            fusedLocationProviderClient.lastLocation.addOnSuccessListener {
+                 mylat = it.latitude
+                 mylong = it.longitude
+            }
+
+            getLocationUpdates()
+
         }else{
             ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION),222)
         }
 
 
         // Add a marker in Sydney and move the camera
+
+      //  val bangalore = LatLng(mylat, mylong)
+
         val bangalore = LatLng(12.98, 77.54)
         mMap.addMarker(MarkerOptions().position(bangalore)
                 .title("BANGALORE")).setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(bangalore,12f))
         //mMap.mapType = GoogleMap.MAP_TYPE_HYBRID
+    }
+
+    private fun getLocationUpdates() {
+        locationRequest = LocationRequest()
+        locationRequest.interval = 10000
+        locationRequest.fastestInterval = 2000
+        LocationRequest.PRIORITY_HIGH_ACCURACY
+
+        locationCallback = object  : LocationCallback(){
+            override fun onLocationResult(p0: LocationResult?) {
+                super.onLocationResult(p0)
+            }
+        }
     }
 }
